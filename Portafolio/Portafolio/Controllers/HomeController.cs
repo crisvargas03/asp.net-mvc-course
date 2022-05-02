@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Portafolio.Models;
+using Portafolio.Services;
 using System.Diagnostics;
 
 namespace Portafolio.Controllers
@@ -7,60 +8,59 @@ namespace Portafolio.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly IProjectsRepository projectsRepository;
+        private readonly IConfiguration configuration;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, IProjectsRepository projectsRepository, IConfiguration configuration)
         {
+            // ver otra vez lo relacionado con la inyeccion de dependencias...
             _logger = logger;
+            this.projectsRepository = projectsRepository;
+            this.configuration = configuration;
         }
 
         public IActionResult Index()
         {
+            var projects = projectsRepository.GetProjets().Take(3).ToList();
+            var modelo = new HomeIndexViewModel() { Projects = projects };
+            return View(modelo);
+
             // ViewBag NO es fuertemente tipado por lo que se tiene que tener cuidado con posibles errores o confusiones.
             // ViewBag.Name = "Cristian Isac Vargas"; || ViewBag.Age = 21;
-
             // return View("AnyView");
-
             //var Person = new Person()
             //{
             //    Name = "Roberto Pastoriza",
             //    Age = 30
             //};
             //return View("Index", Person);
-            var projects = GetProjets().Take(3).ToList();
-            var modelo = new HomeIndexViewModel() { Projects = projects };
-            return View(modelo);
-        }
-
-        private List<ProjectViewModel> GetProjets()
-        {
-            return new List<ProjectViewModel>() { new ProjectViewModel {
-                Title = "Amazon",
-                Description = "E-commerce builded with ASP.NET Core",
-                Link = "http://amazon.com",
-                ImageURL = "/img/amazon.png"
-            },
-            new ProjectViewModel {
-                Title = "New York Times",
-                Description = "Digital News Paper with React",
-                Link = "http://nytimes.com",
-                ImageURL = "/img/nyt.png"
-            },
-            new ProjectViewModel {
-                Title = "Reddit",
-                Description = "Social media for comunities shares",
-                Link = "http://reddit.com",
-                ImageURL = "/img/reddit.png"
-            },
-            new ProjectViewModel {
-                Title = "Steam",
-                Description = "Video games Stores",
-                Link = "http://store.streampowered.com",
-                ImageURL = "/img/steam.png"
-            },
-            };
         }
 
         public IActionResult Privacy()
+        {
+            return View();
+        }
+
+        public IActionResult Projects()
+        {
+            var projects = projectsRepository.GetProjets();
+
+            return View(projects);
+        }
+
+        [HttpGet]
+        public IActionResult Contact()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult Contact(ContactViewModel contactViewModel)
+        {
+            return RedirectToAction("Thanks");
+        }
+
+        public IActionResult Thanks()
         {
             return View();
         }
